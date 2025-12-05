@@ -34,7 +34,11 @@ import { ToggleWishlistButtonComponent } from "../../components/toggle-wishlist-
     <div class="responsive-grid">
       @for (product of store.filteredProducts(); track product.id ) {
         <app-product-cart [product]="product"> 
-          <app-toggle-wishlist-button class="!absolute z-10 top-3 right-3" [product] = "product"/>
+          <app-toggle-wishlist-button 
+            [style.view-transition-name]="'wishlist-button-' + product.id"
+            class="!absolute z-10 top-3 right-3 !bg-white shadow-md rounded-full transition-all duration-300 hover:scale-110 hover:shadow-lg" 
+            [product] = "product"
+          />
         </app-product-cart>
       }
     </div>

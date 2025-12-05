@@ -1,14 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { BackButtonComponent } from "../../componenents/back-button/back-button.component";
 import { ListCartItemsComponent } from "./list-cart-items/list-cart-items.component";
 import { TeaseWishlist } from "./tease-wishlist/tease-wishlist";
 import { SummarizeOrder } from "../../components/summarize-order/summarize-order";
+import { MatAnchor } from "@angular/material/button";
+import { EcommerceStore } from '../../ecommerce';
 
 
 @Component({
   selector: 'app-view-cart',
   standalone: true,
-  imports: [BackButtonComponent, ListCartItemsComponent, TeaseWishlist, SummarizeOrder],
+  imports: [BackButtonComponent, ListCartItemsComponent, TeaseWishlist, SummarizeOrder, MatAnchor],
   template: `
     <div class="mx-auto max-w-[1200px] py-6">
         <app-back-button class="mb-6" navigateTo="/products/all">Continue Shopping </app-back-button>
@@ -22,7 +24,11 @@ import { SummarizeOrder } from "../../components/summarize-order/summarize-order
 
           </div>
           <div>
-            <app-summarize-order/>
+            <app-summarize-order> 
+                <ng-container actionButtons >
+                  <button matButton="filled" class="w-full mt-6 py-3" (click)="store.proceedToCheckout()">Proceed to Checkout</button>
+                </ng-container>
+            </app-summarize-order>
           </div>
         </div>
 
@@ -31,5 +37,5 @@ import { SummarizeOrder } from "../../components/summarize-order/summarize-order
   styles: []
 })
 export  default class ViewCartComponent {
-
+    store = inject(EcommerceStore)
 }

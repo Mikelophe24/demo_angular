@@ -7,9 +7,14 @@ export const routes: Routes = [
     redirectTo: 'products/all',
   },
   {
-    path: 'products/:category', 
+    path: 'products/:category',
     // ở đây áp dụng route param
     loadComponent: () => import('./pages/products-grid/products-grid'),
+  },
+  {
+    path: 'product/:productId',
+    // Sửa thành đường dẫn chính xác đến file component
+    loadComponent: () => import('./pages/view-product-detail/view-product-detail.component'),
   },
   {
     path: 'wishlist',
@@ -18,6 +23,14 @@ export const routes: Routes = [
   {
     path: 'products',
     loadComponent: () => import('./pages/products-grid/products-grid'),
+  },
+  {
+    path: 'checkout',
+    loadComponent: () => import('./pages/checkout/checkout.component'),
+  },
+  {
+    path: 'order-success',
+    loadComponent: () => import('./pages/order-success/order-success.component'),
   },
   {
     path: 'cart',

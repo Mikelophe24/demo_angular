@@ -9,7 +9,7 @@ import { MatIcon } from '@angular/material/icon';
   standalone: true,
   imports: [MatIconButton, MatIcon],
   template: `
-      <button class=" w- h-10 rounded-full !bg-white border-0 shadow-md flex items-center justify-center cursor-pointer transition-all duration-200 hover:scale-100 hover:shadow-lg"
+      <button
             [class]="isInWishlist() ? '!text-red-500': '!text-gray-400'"
             matIconButton (click)="toggleWishlist(product())">
             <mat-icon>

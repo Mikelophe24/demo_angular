@@ -10,7 +10,7 @@ import { RouterLink } from "@angular/router";
   template: `
     <div class="flex flex-col items-center justify-center py-16 text-center">
       <!--heart icon-->
-      <div class="w-20 h-20 mb-8 rounded-full bg-gray-100 flex items-center justify-center">
+      <div class="w-20 h-20 mb-8 rounded-fullvie bg-gray-100 flex items-center justify-center">
         <mat-icon class="text-gray-400 transform scale-150">favorite_border</mat-icon>
       </div>
 
