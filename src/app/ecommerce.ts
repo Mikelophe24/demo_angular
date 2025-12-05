@@ -21,6 +21,7 @@ import { withStorageSync } from '@angular-architects/ngrx-toolkit';
 export type EcommerceState = {
   products: Product[];
   category: string;
+  searchQuery: string;
   wishlistItems: Product[];
   cartItems: CartItem[];
   user: User | undefined;
@@ -646,6 +647,7 @@ export const EcommerceStore = signalStore(
       },
     ],
     category: 'all',
+    searchQuery: '',
     wishlistItems: [],
     cartItems: [],
     user: undefined,
@@ -657,11 +659,26 @@ export const EcommerceStore = signalStore(
     select: ({ wishlistItems, cartItems, user }) => ({ wishlistItems, cartItems, user }),
   }),
 
-  withComputed(({ category, products, wishlistItems, cartItems, selectedProductId }) => ({
+  withComputed(({ category, products, searchQuery, wishlistItems, cartItems, selectedProductId }) => ({
     filteredProducts: computed(() => {
-      if (category() === 'all') return products();
-
-      return products().filter((p) => p.category === category().toLowerCase());
+      let filtered = products();
+      
+      // Filter by category
+      if (category() !== 'all') {
+        filtered = filtered.filter((p) => p.category === category().toLowerCase());
+      }
+      
+      // Filter by search query
+      const query = searchQuery().toLowerCase().trim();
+      if (query) {
+        filtered = filtered.filter((p) => 
+          p.name.toLowerCase().includes(query) ||
+          p.description.toLowerCase().includes(query) ||
+          p.category.toLowerCase().includes(query)
+        );
+      }
+      
+      return filtered;
     }),
     wishlistCount: computed(() => wishlistItems().length),
     cartCount: computed(() => cartItems().reduce((acc, item) => acc + item.quantity, 0)),
@@ -677,6 +694,10 @@ export const EcommerceStore = signalStore(
     ) => ({
       setCategory: signalMethod<string>((category: string) => {
         patchState(store, { category });
+      }),
+
+      setSearchQuery: signalMethod<string>((searchQuery: string) => {
+        patchState(store, { searchQuery });
       }),
 
       setProductId: signalMethod<string>((productId: string) => {
@@ -856,6 +877,49 @@ export const EcommerceStore = signalStore(
       signOut: () => {
         patchState(store, { user: undefined });
       },
+
+      submitReview: signalMethod<{
+        productId: string;
+        title: string;
+        rating: number;
+        comment: string;
+      }>((params) => {
+        const user = store.user();
+        if (!user) {
+          toaster.error('Please sign in to submit a review');
+          return;
+        }
+
+        const products = store.products();
+        const productIndex = products.findIndex((p) => p.id === params.productId);
+        if (productIndex === -1) {
+          toaster.error('Product not found');
+          return;
+        }
+
+        const updatedProducts = produce(products, (draft) => {
+          const newReview = {
+            id: crypto.randomUUID(),
+            productId: params.productId,
+            userName: user.name,
+            userImageUrl: user.imageUrl,
+            rating: params.rating,
+            title: params.title,
+            comment: params.comment,
+            reviewDate: new Date(),
+          };
+
+          draft[productIndex].reviews.push(newReview);
+          
+          // Update product rating and review count
+          const reviews = draft[productIndex].reviews;
+          const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+          draft[productIndex].rating = Number((sum / reviews.length).toFixed(1));
+          draft[productIndex].reviewCount = reviews.length;
+        });
+
+        patchState(store, { products: updatedProducts });
+      }),
     })
   )
 );

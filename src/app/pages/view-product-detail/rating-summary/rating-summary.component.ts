@@ -1,7 +1,5 @@
 import { Component, computed, input } from '@angular/core';
 import { Product } from '../../../models/products';
-import { count } from 'rxjs';
-
 import { StarRatingComponent } from '../../../components/star-rating/star-rating.component';
 
 @Component({
@@ -9,9 +7,7 @@ import { StarRatingComponent } from '../../../components/star-rating/star-rating
   standalone: true,
   imports: [StarRatingComponent],
   template: `
-    <h3 class="text-xl font-bold text-gray-900 mb-6">Customer Reviews</h3>
-
-    <div class="flex items-center gap-12 p-8 bg-gray-50 rounded-xl">
+    <div class="flex items-center gap-12 p-8 bg-gray-50 rounded-xl mb-6">
       <!-- Left Column: Overall Rating -->
       <div class="flex flex-col items-center min-w-[150px]">
         <div class="text-5xl font-bold text-gray-900 mb-2">{{ averageRating() }}</div>
