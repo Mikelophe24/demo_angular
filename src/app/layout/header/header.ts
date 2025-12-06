@@ -18,7 +18,7 @@ import { EcommerceStore } from '../../ecommerce';
           <button matIconButton class="text-gray-700" (click)="store.toggleSidebar()">
             <mat-icon>menu</mat-icon>
           </button>
-          <span class="text-gray-800 font-medium">Modern Store</span>
+          <span class="text-gray-800 font-medium">FlyStore</span>
         </div>
 
         <!-- Center: Search Bar -->

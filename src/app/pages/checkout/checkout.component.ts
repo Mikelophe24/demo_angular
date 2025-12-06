@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { BackButtonComponent } from '../../componenents/back-button/back-button.component';
+import { BackButtonComponent } from '../../components/back-button/back-button.component';
 import { SummarizeOrder } from '../../components/summarize-order/summarize-order';
 import { ShippingFormComponent } from './shipping-form/shipping-form.component';
 import { PaymentFormComponent } from './payment-form/payment-form.component';

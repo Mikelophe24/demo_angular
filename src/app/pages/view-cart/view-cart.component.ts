@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { BackButtonComponent } from "../../componenents/back-button/back-button.component";
+import { BackButtonComponent } from "../../components/back-button/back-button.component";
 import { ListCartItemsComponent } from "./list-cart-items/list-cart-items.component";
 import { TeaseWishlist } from "./tease-wishlist/tease-wishlist";
 import { SummarizeOrder } from "../../components/summarize-order/summarize-order";

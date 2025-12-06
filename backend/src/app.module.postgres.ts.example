@@ -1,0 +1,43 @@
+// Example: app.module.ts với PostgreSQL cho production
+// Đổi tên file này thành app.module.ts và cập nhật khi deploy
+
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
+import { ProductsModule } from './products/products.module';
+import { OrdersModule } from './orders/orders.module';
+import { ReviewsModule } from './reviews/reviews.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot(),
+    TypeOrmModule.forRoot({
+      // Tự động chọn database dựa trên environment
+      type: process.env.DATABASE_URL ? 'postgres' : 'sqlite',
+      
+      // PostgreSQL (Production)
+      ...(process.env.DATABASE_URL && {
+        url: process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      }),
+      
+      // SQLite (Development)
+      ...(!process.env.DATABASE_URL && {
+        database: 'ecommerce.db',
+      }),
+      
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true, // Production nên dùng migrations
+      autoLoadEntities: true,
+    }),
+    AuthModule,
+    UsersModule,
+    ProductsModule,
+    OrdersModule,
+    ReviewsModule,
+  ],
+})
+export class AppModule {}
+

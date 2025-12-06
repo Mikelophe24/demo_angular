@@ -38,6 +38,12 @@ testem.log
 /typings
 __screenshots__/
 
+# Backend
+backend/dist/
+backend/node_modules/
+backend/ecommerce.db
+backend/.env
+
 # System files
 .DS_Store
 Thumbs.db

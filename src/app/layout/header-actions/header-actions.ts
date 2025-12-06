@@ -7,8 +7,8 @@ import { MatMenu, MatMenuTrigger } from '@angular/material/menu';
 import { EcommerceStore } from '../../ecommerce';
 import { MatDivider } from '@angular/material/divider';
 import { MatDialog } from '@angular/material/dialog';
-import { SignInDialogComponent } from '../../components/sign-in-dialog/sign-in-dialog.component';
-import { SignUpDialogComponent } from '../../components/sign-up-dialog/sign-up-dialog.component';
+import { AuthService } from '../../services/auth.service';
+import { AuthDialogComponent } from '../../components/auth-dialog/auth-dialog.component';
 
 @Component({
   selector: 'app-header-actions',
@@ -40,48 +40,78 @@ import { SignUpDialogComponent } from '../../components/sign-up-dialog/sign-up-d
       >
         <mat-icon>shopping_cart</mat-icon>
       </button>
-      @if(store.user(); as user){
+
+      @if(authService.currentUser; as user) {
       <button matIconButton [matMenuTriggerFor]="userMenu">
-        <img [src]="user.imageUrl" [alt]="user.name" class="w-8 h-8 rounded-full" />
+        <img
+          [src]="user.imageUrl || 'https://i.pravatar.cc/150?u=' + user.email"
+          [alt]="user.name"
+          class="w-8 h-8 rounded-full object-cover"
+        />
       </button>
 
       <mat-menu #userMenu="matMenu" xPosition="before">
-        <div class="flex flex-col px-3 min-w-[200px] py-2">
-          <span class="text-sm font-medium">{{ user.name }}</span>
+        <div class="flex flex-col px-4 py-3 min-w-[220px] border-b">
+          <span class="text-sm font-semibold text-gray-800">{{ user.name }}</span>
           <span class="text-xs text-gray-500">{{ user.email }}</span>
+          <span class="text-xs mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full w-fit">
+            {{ user.role === 'admin' ? '👑 Admin' : '👤 Customer' }}
+          </span>
         </div>
-        <mat-divider class="mx-3"></mat-divider>
 
-        <!-- ✅ FIX: Flexbox + Tailwind alignment -->
-        <button
-          mat-menu-item
-          (click)="store.signOut()"
-          class="h-8 min-h-0 flex items-center gap-3 px-4 py-1 !m-0"
-        >
-          <mat-icon class="w-5 h-5 text-base shrink-0">logout</mat-icon>
-          <span class="text-sm">Sign out</span>
+        @if(user.role === 'admin') {
+        <button mat-menu-item routerLink="/admin" class="flex items-center gap-3">
+          <mat-icon class="text-purple-600">admin_panel_settings</mat-icon>
+          <span>Admin Panel</span>
+        </button>
+        }
+
+        <button mat-menu-item class="flex items-center gap-3">
+          <mat-icon>person</mat-icon>
+          <span>My Profile</span>
+        </button>
+
+        <button mat-menu-item routerLink="/my-orders" class="flex items-center gap-3">
+          <mat-icon>shopping_bag</mat-icon>
+          <span>My Orders</span>
+        </button>
+
+        <mat-divider></mat-divider>
+
+        <button mat-menu-item (click)="logout()" class="flex items-center gap-3 text-red-600">
+          <mat-icon>logout</mat-icon>
+          <span>Sign Out</span>
         </button>
       </mat-menu>
-      }@else {
-      <button matButton (click)="openSignInDialog()">Sign In</button>
-      <button matButton="filled" (click)="openSignUpDialog()">Sign Up</button>
+      } @else {
+      <button mat-button (click)="openAuthDialog()">
+        <mat-icon class="mr-1">login</mat-icon>
+        Sign In
+      </button>
       }
     </div>
   `,
-  styles: ``,
+  styles: [
+    `
+      ::ng-deep .mat-mdc-menu-content {
+        padding: 0 !important;
+      }
+    `,
+  ],
 })
 export class HeaderActions {
   store = inject(EcommerceStore);
+  authService = inject(AuthService);
   matDialog = inject(MatDialog);
 
-  openSignInDialog() {
-    this.matDialog.open(SignInDialogComponent, {
-      disableClose: true,
+  openAuthDialog() {
+    this.matDialog.open(AuthDialogComponent, {
+      width: '500px',
+      disableClose: false,
     });
   }
-  openSignUpDialog() {
-    this.matDialog.open(SignUpDialogComponent, {
-      disableClose: true,
-    });
+
+  logout() {
+    this.authService.logout();
   }
 }

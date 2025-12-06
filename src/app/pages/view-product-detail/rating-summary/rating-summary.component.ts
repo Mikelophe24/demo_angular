@@ -36,23 +36,41 @@ import { StarRatingComponent } from '../../../components/star-rating/star-rating
       </div>
     </div>
   `,
-  styles: ``,
+  styles: [],
 })
 export class RatingSummaryComponent {
   product = input.required<Product>();
-  totalReviews = computed(() => this.product().reviews.length);
+
+  totalReviews = computed(() => this.product().reviews?.length || this.product().reviewCount || 0);
 
   averageRating = computed(() => {
     const reviews = this.product().reviews;
-    if (reviews.length === 0) return 0;
-
-    const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
-    return Number((sum / reviews.length).toFixed(1));
+    if (reviews && reviews.length > 0) {
+      const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
+      return Number((sum / reviews.length).toFixed(1));
+    }
+    return this.product().rating || 0;
   });
 
   ratingBreakdown = computed(() => {
     const reviews = this.product().reviews;
-    const total = reviews.length;
+    const totalReal = reviews ? reviews.length : 0;
+
+    // 1. Use real reviews if available
+    if (totalReal > 0) {
+      return [5, 4, 3, 2, 1].map((stars) => {
+        const count = reviews!.filter((review) => review.rating === stars).length;
+        return {
+          stars,
+          count,
+          percentage: (count / totalReal) * 100,
+        };
+      });
+    }
+
+    // 2. Fallback: Simulate breakdown from summary stats
+    const total = this.totalReviews();
+    const avg = this.averageRating();
 
     if (total === 0) {
       return [5, 4, 3, 2, 1].map((stars) => ({
@@ -62,8 +80,29 @@ export class RatingSummaryComponent {
       }));
     }
 
-    const counts = [5, 4, 3, 2, 1].map((stars) => {
-      const count = reviews.filter((review) => review.rating === stars).length;
+    // Distribute counts to match the average
+    // Example: 4.6 avg.
+    // Fraction 0.6 means 60% of reviews are "ceil" (5), 40% are "floor" (4).
+    const ceil = Math.ceil(avg);
+    const floor = Math.floor(avg);
+    const fraction = avg - floor;
+
+    // If avg is integer (e.g. 5.0), fraction is 0, countCeil is 0, countFloor is total.
+    // Logic check: 5.0 -> floor 5, ceil 5.
+
+    let countCeil = Math.round(total * fraction);
+    let countFloor = total - countCeil;
+
+    // Adjust for pure integer case (4.0 or 5.0) where fraction is nearly 0
+    if (ceil === floor) {
+      countCeil = 0;
+      countFloor = total;
+    }
+
+    return [5, 4, 3, 2, 1].map((stars) => {
+      let count = 0;
+      if (stars === ceil) count += countCeil;
+      if (stars === floor) count += countFloor;
 
       return {
         stars,
@@ -71,7 +110,5 @@ export class RatingSummaryComponent {
         percentage: (count / total) * 100,
       };
     });
-
-    return counts;
   });
 }
