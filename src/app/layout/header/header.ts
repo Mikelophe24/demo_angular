@@ -1,15 +1,19 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { MatToolbar } from '@angular/material/toolbar';
 import { MatIconButton } from '@angular/material/button';
 import { MatIcon } from '@angular/material/icon';
 import { HeaderActions } from '../header-actions/header-actions';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
-import { inject } from '@angular/core';
 import { EcommerceStore } from '../../ecommerce';
+import { Router } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs/operators';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-header',
-  imports: [MatToolbar, MatIconButton, MatIcon, HeaderActions, SearchBarComponent],
+  standalone: true,
+  imports: [CommonModule, MatToolbar, MatIconButton, MatIcon, HeaderActions, SearchBarComponent],
   template: `
     <mat-toolbar class="w-full elevated py-2 z-10 relative bg-gray-50">
       <div class="max-w-[1200px] mx-auto w-full flex items-center justify-between gap-4">
@@ -22,7 +26,7 @@ import { EcommerceStore } from '../../ecommerce';
         </div>
 
         <!-- Center: Search Bar -->
-        <div class="flex-1 max-w-[650px] mx-4">
+        <div class="flex-1 max-w-[650px] mx-4" *ngIf="!isProductDetailPage()">
           <app-search-bar />
         </div>
 
@@ -37,4 +41,21 @@ import { EcommerceStore } from '../../ecommerce';
 })
 export class Header {
   store = inject(EcommerceStore);
+  private router = inject(Router);
+
+  // Check if current route is product detail, wishlist, or cart page
+  isProductDetailPage = toSignal(
+    this.router.events.pipe(
+      map(() => {
+        const url = this.router.url;
+        return url.includes('/product/') || url.includes('/wishlist') || url.includes('/cart');
+      })
+    ),
+    {
+      initialValue: (() => {
+        const url = this.router.url;
+        return url.includes('/product/') || url.includes('/wishlist') || url.includes('/cart');
+      })(),
+    }
+  );
 }
