@@ -8,45 +8,47 @@ import {
   Validators,
 } from '@angular/forms';
 import { MatAnchor, MatButtonModule, MatIconButton } from '@angular/material/button';
-  import { MAT_DIALOG_DATA, MatDialog, MatDialogClose, MatDialogRef } from '@angular/material/dialog';
-  import { MatFormFieldModule, MatPrefix, MatSuffix } from '@angular/material/form-field';
-  import { MatIcon } from '@angular/material/icon';
-  import { MatInputModule } from '@angular/material/input';
-  import { EcommerceStore } from '../../ecommerce';
-  import { SignUpParams } from '../../models/user';
-  import { SignInDialogComponent } from '../sign-in-dialog/sign-in-dialog.component';
+import { MAT_DIALOG_DATA, MatDialog, MatDialogClose, MatDialogRef } from '@angular/material/dialog';
+import { MatFormFieldModule, MatPrefix, MatSuffix } from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { EcommerceStore } from '../../ecommerce';
+import { SignUpParams } from '../../models/user';
+import { SignInDialogComponent } from '../sign-in-dialog/sign-in-dialog.component';
 
-  // ✅ Custom Validator: Kiểm tra password matching
-  function passwordMatchValidator(): ValidatorFn {
-    return (control: AbstractControl): ValidationErrors | null => {
-      const password = control.get('password');
-      const confirmPassword = control.get('confirmPassword');
+// ✅ Custom Validator: Kiểm tra password matching
+function passwordMatchValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const password = control.get('password');
+    const confirmPassword = control.get('confirmPassword');
 
-      // Nếu chưa có giá trị, không validate
-      if (!password || !confirmPassword) {
-        return null;
-      }
+    if (!password || !confirmPassword) {
+      return null;
+    }
 
-      // Nếu confirmPassword chưa được touch, không validate
-      if (!confirmPassword.value) {
-        return null;
-      }
+    const passwordValue = password.value;
+    const confirmPasswordValue = confirmPassword.value;
 
-      // So sánh passwords
-      const isMatching = password.value === confirmPassword.value;
+    // Nếu confirmPassword trống, không validate
+    if (!confirmPasswordValue) {
+      return null;
+    }
 
-      // Set error trực tiếp vào confirmPassword field để dễ hiển thị
-      if (!isMatching && confirmPassword.touched) {
-        confirmPassword.setErrors({ ...confirmPassword.errors, passwordMismatch: true });
-      } else if (isMatching && confirmPassword.hasError('passwordMismatch')) {
-        // Xóa error passwordMismatch nếu passwords đã khớp
-        const errors = { ...confirmPassword.errors };
-        delete errors['passwordMismatch'];
-        confirmPassword.setErrors(Object.keys(errors).length > 0 ? errors : null);
-      }
+    // So sánh passwords
+    const isMatching = passwordValue === confirmPasswordValue;
 
-      return isMatching ? null : { passwordMismatch: true };
-    };
+    // Set error trực tiếp vào confirmPassword field
+    if (!isMatching) {
+      confirmPassword.setErrors({ ...confirmPassword.errors, passwordMismatch: true });
+    } else if (confirmPassword.hasError('passwordMismatch')) {
+      // Xóa error passwordMismatch nếu passwords đã khớp
+      const errors = { ...confirmPassword.errors };
+      delete errors['passwordMismatch'];
+      confirmPassword.setErrors(Object.keys(errors).length > 0 ? errors : null);
+    }
+
+    return isMatching ? null : { passwordMismatch: true };
+  };
 }
 
 @Component({
@@ -140,13 +142,25 @@ export class SignUpDialogComponent {
   matDialog = inject(MatDialog);
   data = inject<{ checkout: boolean }>(MAT_DIALOG_DATA);
 
-  // ✅ SỬA: Thêm this.fb.group()
-  signupForm = this.fb.group({
-    name: ['TriMinh', Validators.required],
-    email: ['triminh@gmail.com', [Validators.required, Validators.email]],
-    password: ['123456', [Validators.required, Validators.minLength(6)]],
-    confirmPassword: ['123456', Validators.required],
-  });
+  // ✅ Thêm validator cho form group
+  signupForm = this.fb.group(
+    {
+      name: ['', Validators.required],
+      email: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', Validators.required],
+    },
+    {
+      validators: passwordMatchValidator(), // ← Validator ở form level
+    }
+  );
+
+  constructor() {
+    // ✅ Lắng nghe thay đổi của password để trigger validation
+    this.signupForm.get('password')?.valueChanges.subscribe(() => {
+      this.signupForm.get('confirmPassword')?.updateValueAndValidity();
+    });
+  }
 
   signUp() {
     if (!this.signupForm.valid) {
