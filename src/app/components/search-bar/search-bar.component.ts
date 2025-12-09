@@ -8,11 +8,7 @@ import { EcommerceStore } from '../../ecommerce';
 @Component({
   selector: 'app-search-bar',
   standalone: true,
-  imports: [
-    MatFormFieldModule,
-    MatInputModule,
-    MatIcon,
-  ],
+  imports: [MatFormFieldModule, MatInputModule, MatIcon],
   template: `
     <div class="w-full">
       <mat-form-field appearance="outline" class="w-full">
@@ -51,18 +47,16 @@ export class SearchBarComponent {
     // Effect to watch search query changes and update store with debounce
     effect(() => {
       const query = this.searchQuery();
-      
+
       // Clear previous timer
       if (this.debounceTimer) {
         clearTimeout(this.debounceTimer);
       }
-      
-      // Debounce the search update
+
       this.debounceTimer = setTimeout(() => {
         const trimmedQuery = query.trim();
         this.store.setSearchQuery(trimmedQuery);
-        
-        // Navigate to products page if user starts searching and not already there
+
         if (trimmedQuery && !this.router.url.includes('/products')) {
           this.router.navigate(['/products/all']);
         }
@@ -75,4 +69,3 @@ export class SearchBarComponent {
     this.searchQuery.set(target.value);
   }
 }
-
