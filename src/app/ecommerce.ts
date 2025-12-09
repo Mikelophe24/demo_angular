@@ -713,7 +713,7 @@ export const EcommerceStore = signalStore(
         patchState(store, { isSidebarOpen: !store.isSidebarOpen() });
       },
 
-      addToWishlish(product: Product) {
+      addToWishlist(product: Product) {
         const updatedWishlistItems = produce(store.wishlistItems(), (draft) => {
           if (!draft.find((p) => p.id === product.id)) {
             draft.push(product);
@@ -721,7 +721,7 @@ export const EcommerceStore = signalStore(
         });
 
         patchState(store, { wishlistItems: updatedWishlistItems });
-        toaster.success('Product added to wishlish');
+        toaster.success('Product added to wishlist');
       },
 
       removeFromWishlist: (product: Product) => {

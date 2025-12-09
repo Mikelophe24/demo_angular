@@ -9,31 +9,29 @@ import { MatIcon } from '@angular/material/icon';
   standalone: true,
   imports: [MatIconButton, MatIcon],
   template: `
-      <button
-            [class]="isInWishlist() ? '!text-red-500': '!text-gray-400'"
-            matIconButton (click)="toggleWishlist(product())">
-            <mat-icon>
-              {{isInWishlist() ? 'favorite' : 'favorite_border'}}
-            </mat-icon>
-          </button>
+    <button
+      [class]="isInWishlist() ? '!text-red-500' : '!text-gray-400'"
+      matIconButton
+      (click)="toggleWishlist(product())"
+    >
+      <mat-icon>
+        {{ isInWishlist() ? 'favorite' : 'favorite_border' }}
+      </mat-icon>
+    </button>
   `,
-  styles: ``
+  styles: ``,
 })
 export class ToggleWishlistButtonComponent {
+  product = input.required<Product>();
+  isInWishlist = computed(() => this.store.wishlistItems().find((p) => p.id === this.product().id));
 
-    product = input.required<Product>();
-    isInWishlist  = computed(() => this.store.wishlistItems().find(p => p.id=== this.product().id))
+  store = inject(EcommerceStore);
 
-    store = inject(EcommerceStore);
-
-    
-    toggleWishlist(product :Product){
-      if(this.isInWishlist()){
-          this.store.removeFromWishlist(product);
-      }
-      else{
-        this.store.addToWishlish(product);
-      }
+  toggleWishlist(product: Product) {
+    if (this.isInWishlist()) {
+      this.store.removeFromWishlist(product);
+    } else {
+      this.store.addToWishlist(product);
     }
-
   }
+}

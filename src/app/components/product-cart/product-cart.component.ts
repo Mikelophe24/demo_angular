@@ -59,11 +59,11 @@ export class ProductCartComponent {
   product = input.required<Product>();
   store = inject(EcommerceStore);
 
-  totalReviews = computed(() => this.product().reviews.length);
+  totalReviews = computed(() => this.product().reviews?.length || 0);
 
   averageRating = computed(() => {
     const reviews = this.product().reviews;
-    if (reviews.length === 0) return 0;
+    if (!reviews || reviews.length === 0) return 0;
 
     const sum = reviews.reduce((acc, review) => acc + review.rating, 0);
     return Number((sum / reviews.length).toFixed(1));
