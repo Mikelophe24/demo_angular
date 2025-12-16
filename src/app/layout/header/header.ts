@@ -5,7 +5,7 @@ import { MatIcon } from '@angular/material/icon';
 import { HeaderActions } from '../header-actions/header-actions';
 import { SearchBarComponent } from '../../components/search-bar/search-bar.component';
 import { EcommerceStore } from '../../ecommerce';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, MatToolbar, MatIconButton, MatIcon, HeaderActions, SearchBarComponent],
+  imports: [CommonModule, MatToolbar, MatIconButton, MatIcon, HeaderActions, SearchBarComponent, RouterLink],
   template: `
     <mat-toolbar class="w-full elevated py-2 z-10 relative bg-gray-50">
       <div class="max-w-[1200px] mx-auto w-full flex items-center justify-between gap-4">
@@ -22,7 +22,11 @@ import { CommonModule } from '@angular/common';
           <button matIconButton class="text-gray-700" (click)="store.toggleSidebar()">
             <mat-icon>menu</mat-icon>
           </button>
-          <span class="text-gray-800 font-medium">Modern Store</span>
+          <a 
+            routerLink="/products/all" 
+            class="text-gray-800 font-medium cursor-pointer hover:text-blue-600 transition-colors">
+            Modern Store
+          </a>
         </div>
 
         <!-- Center: Search Bar -->

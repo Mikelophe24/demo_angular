@@ -1,4 +1,6 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './guards/auth.guard';
+import { adminGuard } from './guards/role.guard';
 
 export const routes: Routes = [
   {
@@ -26,6 +28,7 @@ export const routes: Routes = [
   },
   {
     path: 'checkout',
+    canActivate: [authGuard], // Phải đăng nhập mới checkout được
     loadComponent: () => import('./pages/checkout/checkout.component'),
   },
   {
@@ -35,5 +38,10 @@ export const routes: Routes = [
   {
     path: 'cart',
     loadComponent: () => import('./pages/view-cart/view-cart.component'),
+  },
+  {
+    path: 'admin',
+    canActivate: [adminGuard], // Chỉ admin mới vào được
+    loadComponent: () => import('./pages/admin-dashboard/admin-dashboard.component'),
   },
 ];

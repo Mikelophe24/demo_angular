@@ -1,9 +1,11 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Header } from './layout/header/header';
+import { EcommerceStore } from './ecommerce';
 
 @Component({
   selector: 'app-root',
+  standalone: true,
   imports: [RouterOutlet, Header],
   template: `
     <app-header/>
@@ -15,4 +17,11 @@ import { Header } from './layout/header/header';
   `,
   styles: [],
 })
-export class App {}
+export class App {
+  private store = inject(EcommerceStore);
+
+  constructor() {
+    // Load products từ JSON Server khi app khởi động
+    this.store.loadProducts();
+  }
+}

@@ -9,9 +9,13 @@ import { MatDivider } from '@angular/material/divider';
 import { MatDialog } from '@angular/material/dialog';
 import { SignInDialogComponent } from '../../components/sign-in-dialog/sign-in-dialog.component';
 import { SignUpDialogComponent } from '../../components/sign-up-dialog/sign-up-dialog.component';
+import { HasRoleDirective } from '../../directives/has-role.directive';
+import { UserRole } from '../../models/user';
+
 
 @Component({
   selector: 'app-header-actions',
+  standalone: true,
   imports: [
     MatButton,
     MatIconButton,
@@ -21,6 +25,7 @@ import { SignUpDialogComponent } from '../../components/sign-up-dialog/sign-up-d
     MatMenu,
     MatMenuTrigger,
     MatDivider,
+    HasRoleDirective,
   ],
   template: `
     <div class="flex items-center gap-2">
@@ -49,17 +54,31 @@ import { SignUpDialogComponent } from '../../components/sign-up-dialog/sign-up-d
         <div class="flex flex-col px-3 min-w-[200px] py-2">
           <span class="text-sm font-medium">{{ user.name }}</span>
           <span class="text-xs text-gray-500">{{ user.email }}</span>
+          <span class="text-xs text-purple-600 font-semibold mt-1">{{ user.role }}</span>
         </div>
         <mat-divider class="mx-3"></mat-divider>
 
-        <!-- ✅ FIX: Flexbox + Tailwind alignment -->
+        <!-- Admin Dashboard Link - Chỉ hiển thị cho Admin -->
+        <div *hasRole="UserRole.ADMIN">
+          <button
+            mat-menu-item
+            routerLink="/admin"
+            class="h-8 min-h-0 flex items-center gap-3 px-4 py-1 !m-0"
+          >
+            <mat-icon class="w-5 h-5 text-base shrink-0">admin_panel_settings</mat-icon>
+            <span  class="text-gray-800 font-medium cursor-pointer hover:text-blue-600 transition-colors">Admin Dashboard</span>
+          </button>
+          <mat-divider class="mx-3"></mat-divider>
+        </div>
+
+        <!-- Sign out -->
         <button
           mat-menu-item
           (click)="store.signOut()"
           class="h-8 min-h-0 flex items-center gap-3 px-4 py-1 !m-0"
         >
           <mat-icon class="w-5 h-5 text-base shrink-0">logout</mat-icon>
-          <span class="text-sm">Sign out</span>
+          <span  class="text-gray-800 font-medium cursor-pointer hover:text-blue-600 transition-colors">Sign out</span>
         </button>
       </mat-menu>
       }@else {
@@ -73,6 +92,9 @@ import { SignUpDialogComponent } from '../../components/sign-up-dialog/sign-up-d
 export class HeaderActions {
   store = inject(EcommerceStore);
   matDialog = inject(MatDialog);
+  
+  // Expose UserRole enum để template có thể sử dụng
+  UserRole = UserRole;
 
   openSignInDialog() {
     this.matDialog.open(SignInDialogComponent, {

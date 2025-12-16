@@ -13,10 +13,12 @@ import { ToasterService } from './servives/toaster.service';
 import { CartItem } from './models/cart';
 import { MatDialog } from '@angular/material/dialog';
 import { SignInDialogComponent } from './components/sign-in-dialog/sign-in-dialog.component';
-import { SignInParams, SignUpParams, User } from './models/user';
+import { SignInParams, SignUpParams, User, UserRole } from './models/user';
 import { Router, RouterLink } from '@angular/router';
 import { Order } from './models/order';
 import { withStorageSync } from '@angular-architects/ngrx-toolkit';
+import { AuthService } from './services/auth.service';
+import { ProductService } from './services/product.service';
 
 export type EcommerceState = {
   products: Product[];
@@ -695,7 +697,9 @@ export const EcommerceStore = signalStore(
       store,
       toaster = inject(ToasterService),
       matDialog = inject(MatDialog),
-      router = inject(Router)
+      router = inject(Router),
+      authService = inject(AuthService),
+      productService = inject(ProductService)
     ) => ({
       setCategory: signalMethod<string>((category: string) => {
         patchState(store, { category });
@@ -806,55 +810,54 @@ export const EcommerceStore = signalStore(
         router.navigate(['/checkout']);
       },
 
-      signUp({ email, password, name, dialogId }: SignUpParams) {
-        const usersStr = localStorage.getItem('app_users');
-        const users: User[] = usersStr ? JSON.parse(usersStr) : [];
-
-        if (users.find((u) => u.email === email)) {
-          toaster.error('User already exists');
-          return;
-        }
-
-        const newUser: User = {
-          id: crypto.randomUUID(),
-          email,
-          name,
-          imageUrl: 'https://i.pravatar.cc/150?u=' + email, // Dynamic avatar
-        };
-
-        // In a real app, we would hash the password. storing plain text for demo.
-        const usersWithPassword = [
-          ...(usersStr ? JSON.parse(usersStr) : []),
-          { ...newUser, password },
-        ];
-        localStorage.setItem('app_users', JSON.stringify(usersWithPassword));
-
-        patchState(store, { user: newUser });
-        matDialog.getDialogById(dialogId)?.close();
-        toaster.success('Account created successfully');
+      signUp({ email, password, name, dialogId, role }: SignUpParams) {
+        authService.signUp({ email, password, name, role }).subscribe({
+          next: (user) => {
+            if (user) {
+              // KHÔNG auto login - user phải login lại
+              // patchState(store, { user }); ← REMOVED
+              
+              // Đóng Sign Up dialog
+              matDialog.getDialogById(dialogId)?.close();
+              
+              // Show success message
+              toaster.success('Account created successfully! Please sign in.');
+              
+              // Mở Sign In dialog sau 500ms
+              setTimeout(() => {
+                matDialog.open(SignInDialogComponent, {
+                  disableClose: true,
+                });
+              }, 500);
+            } else {
+              toaster.error('User already exists');
+            }
+          },
+          error: (error) => {
+            toaster.error(error.message || 'Failed to create account');
+          }
+        });
       },
 
       signIn({ email, password, checkout, dialogId }: SignInParams) {
-        const usersStr = localStorage.getItem('app_users');
-        const users: any[] = usersStr ? JSON.parse(usersStr) : [];
-
-        const foundUser = users.find((u) => u.email === email && u.password === password);
-
-        if (foundUser) {
-          const { password, ...userWithoutPassword } = foundUser;
-          patchState(store, {
-            user: userWithoutPassword,
-          });
-
-          matDialog.getDialogById(dialogId)?.close();
-
-          if (checkout) {
-            router.navigate(['/checkout']);
+        authService.signIn({ email, password }).subscribe({
+          next: (user) => {
+            if (user) {
+              patchState(store, { user });
+              matDialog.getDialogById(dialogId)?.close();
+              
+              if (checkout) {
+                router.navigate(['/checkout']);
+              }
+              toaster.success('Signed in successfully');
+            } else {
+              toaster.error('Invalid email or password');
+            }
+          },
+          error: (error) => {
+            toaster.error(error.message || 'Failed to sign in');
           }
-          toaster.success('Signed in successfully');
-        } else {
-          toaster.error('Invalid email or password');
-        }
+        });
       },
 
       placeOrder: async () => {
@@ -884,7 +887,15 @@ export const EcommerceStore = signalStore(
       },
 
       signOut: () => {
-        patchState(store, { user: undefined });
+        patchState(store, { user: undefined, cartItems: [], wishlistItems: [] });
+      },
+
+      updateUserRole: (role: UserRole) => {
+        const user = store.user();
+        if (!user) return;
+        
+        const updatedUser = { ...user, role };
+        patchState(store, { user: updatedUser });
       },
 
       submitReview: signalMethod<{
@@ -927,8 +938,29 @@ export const EcommerceStore = signalStore(
           draft[productIndex].reviewCount = reviews.length;
         });
 
+
         patchState(store, { products: updatedProducts });
       }),
+
+      /**
+       * Load products từ JSON Server API
+       * Nếu API fail, giữ nguyên hardcoded products
+       */
+      loadProducts: () => {
+        productService.getAllProducts().subscribe(products => {
+          if (products && products.length > 0) {
+            // Map products từ API sang format của app (thêm reviews nếu cần)
+            const productsWithReviews = products.map(p => ({
+              ...p,
+              reviews: p.reviews || [] // Đảm bảo có reviews array
+            }));
+            patchState(store, { products: productsWithReviews });
+            console.log(`✅ Loaded ${products.length} products from API`);
+          } else {
+            console.log('ℹ️ No products from API, using hardcoded products');
+          }
+        });
+      },
     })
   )
 );

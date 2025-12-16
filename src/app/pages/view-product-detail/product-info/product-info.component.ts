@@ -48,7 +48,7 @@ import { StarRatingComponent } from '../../../components/star-rating/star-rating
         (click)="store.addToCart(product(), quantity())"
         [disabled]="!product().inStock"
       >
-        <mat-icon>shopping_cart</mat-icon>
+        <mat-icon>shopping_cart </mat-icon>
         {{ product().inStock ? 'Add to Cart' : 'Out of Stock' }}
       </button>
       <app-toggle-wishlist-button [product]="product()" />
